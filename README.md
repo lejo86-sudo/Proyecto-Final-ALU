@@ -1,5 +1,5 @@
 #  ALU de 8 Bits y Sistema de Memoria Unificada 
-### Proyecto Final de vhdl — Universidad del Cauca 🏛️
+### Proyecto Final de vhdl — Universidad del Cauca 
 
 [![FPGA](https://img.shields.io/badge/FPGA-Cyclone%20III%20EP3C16F484C6-blue.svg)](https://www.intel.com)
 [![Hardware](https://img.shields.io/badge/Board-Terasic%20DE0-orange.svg)](https://www.terasic.com.tw)
