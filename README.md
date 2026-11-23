@@ -74,7 +74,7 @@ PfinalALU/
 ├── constraints/
 │   └── de0_pins.qsf           # Asignación física exacta de pines para la Terasic DE0
 ├── simulador.html             # Simulador web interactivo del proyecto
-└── README.md                  # Este archivo que estás leyendo
+└── README.md                  # Este archivo
 ```
 
 ###  Mapa de Memoria (256 Bytes)
