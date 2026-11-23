@@ -19,8 +19,6 @@
 
 ##  ¿De qué se trata este proyecto?
 
-
-
 Lo que diseñamos aquí fue el **cerebro y la memoria de una computadora de 8 bits** desde cero, usando hardware digital puro con **VHDL** e implementándolo en una tarjeta FPGA **Terasic DE0 (Altera Cyclone III)**.
 
 Este proyecto nace a partir de la pregunta de cómo hace un procesador por dentro para sumar, restar, tomar decisiones lógicas o guardar información en la RAM, ¡este proyecto es exactamente eso puesto en silicio!
@@ -35,6 +33,13 @@ El sistema se compone de dos grandes bloques interconectados:
 Además, todo se visualiza en tiempo real en los **4 displays de 7 segmentos**, con soporte para números con signo (complemento a 2) y sin signo gracias a una implementación hardware del algoritmo **Double Dabble**.
 
 ---
+
+##   Imágenes del proyecto montado
+<img width="987" height="733" alt="image" src="https://github.com/user-attachments/assets/130c7bb8-08dc-4437-8ef8-f21860091bf3" />
+<img width="968" height="683" alt="image" src="https://github.com/user-attachments/assets/f34a1fe6-1140-49e7-80d0-ef46734bcea9" />
+<img width="947" height="580" alt="image" src="https://github.com/user-attachments/assets/ab30dfba-5488-46d6-9457-4c52c9596b87" />
+
+
 
 ##  Simulador Web Interactivo
 
@@ -128,17 +133,3 @@ Para controlar el sistema usamos los **10 switches de la tarjeta DE0**, **2 boto
 
 ---
 
-## 🔬 Curiosidades y Retos que Resolvimos
-
-Durante el desarrollo nos encontramos con varios retos típicos de la vida real de un ingeniero que valen la pena destacar:
-
-1. **El "misterio" del $0 - 1 = 255$:**  
-   Al principio pensamos que era un error: al restar $0 - 1$, la pantalla mostraba $255$. Investigando a fondo, ¡nos dimos cuenta de que la ALU estaba perfecta! En aritmética binaria sin signo de 8 bits, `00000000 - 00000001 = 11111111`, lo que en decimal sin signo es exactamente **255**. Para ver el número negativo real, implementamos el interruptor de signo (`DIP 11`): al activarlo, el convertidor Double Dabble interpreta el complemento a 2 y muestra orgullosamente ` - 0 0 1`.
-
-2. **El rebote de los pulsadores mecánicos:**  
-   Los botones de la placa vibran físicamente durante unos milisegundos al presionarse. A 50 MHz, la FPGA alcanzaba a contar docenas de pulsos en un solo clic. Diseñamos un módulo `debouncer.vhd` que filtra cualquier cambio que dure menos de 20 ms ($1.000.000$ de ciclos de reloj), haciendo que cada clic sea firme y único.
-
-3. **Inversión de pines en el Display HEX0:**  
-   En las pruebas iniciales, el display de las unidades mostraba símbolos raros. Al revisar el esquemático oficial de Terasic descubrimos que los pines estaban mapeados en orden inverso ($g..a$ en vez de $a..g$). Lo corregimos en el `.qsf` y los números volvieron a lucir perfectos.
-
----
