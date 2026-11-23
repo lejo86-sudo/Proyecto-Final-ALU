@@ -133,3 +133,12 @@ Para controlar el sistema usamos los **10 switches de la tarjeta DE0**, **2 boto
 
 ---
 
+## Dificultades encontradas a lo largo del curso
+
+- La falta de proyectos y referencias previas en VHDL, ya que diferencia de lenguajes como C, Python o Java, VHDL no es un lenguaje tan popular en internet. Es muy difícil encontrar ejemplos modernos o ayudas claras en foros más allá de la teoría clásica o del material suministrado por el profesor, lo que obligó a investigar bastante por cuenta propia.
+- La limitación en horarios de asesoría, los cruces de horarios académicos y la disponibilidad por fuera de la clase hicieron que muchas dudas sobre errores puntuales tuvieran que resolverse de forma autodidacta a punta de prueba, error y muchas horas frente a la pantalla.
+- La rigidez y complejidad del lenguaje VHDL, ya que es un lenguaje sumamente estricto. Cosas como que el nombre del archivo deba coincidir exactamente con la entidad, la sensibilidad en la jerarquía del proyecto o el manejo exigente de tipos de datos (std_logic, unsigned, integer), hacen que al principio resulte poco intuitivo y frustrante para quien viene del software tradicional.
+- La curva de aprendizaje de Quartus II, ya que al ser un software de nivel industrial y profesional, el entorno resulta abrumador para un estudiante al inicio. Aprender a navegar entre tantas herramientas, entender el flujo de síntesis, usar el Pin Planner y configurar el programador USB-Blaster tomó bastante tiempo y práctica.
+- Depurar en hardware es muy distinto a depurar en código. El hecho de que un diseño compile con 0 errores no garantiza que funcione en la placa: un solo pin mal asignado en el esquemático o no contemplar el rebote mecánico de un pulsador hace que el circuito falle en el mundo real, haciendo que encontrar el origen del problema sea un reto considerable.
+- Adaptarse a la concurrencia —entender que en una FPGA todo ocurre al mismo tiempo en paralelo y no línea por línea en secuencia— fue uno de los desafíos conceptuales más grandes al estructurar la ALU y el control de la memoria.
+
