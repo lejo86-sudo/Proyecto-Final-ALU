@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador Interactivo - ALU 8-bit & Memoria FPGA (Unicauca)</title>
+  <!-- Tailwind CSS CDN con fallback de estilos integrados -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Inter:wght@400;600;700;900&display=swap');
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #e2e8f0;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* 7-Segment SVG Segment Styles */
+    .seg-on {
+      fill: #ff334b;
+      filter: drop-shadow(0 0 6px rgba(255, 51, 75, 0.85));
+    }
+    .seg-off {
+      fill: #221418;
+      opacity: 0.25;
+    }
+
+    /* LED Styles */
+    .led {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      transition: all 0.15s ease-in-out;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.4);
+    }
+    .led-green-on {
+      background-color: #10b981;
+      box-shadow: 0 0 10px #10b981, inset 0 1px 3px rgba(255,255,255,0.6);
+    }
+    .led-green-off {
+      background-color: #064e3b;
+      opacity: 0.4;
+    }
+    .led-amber-on {
+      background-color: #f59e0b;
+      box-shadow: 0 0 10px #f59e0b, inset 0 1px 3px rgba(255,255,255,0.6);
+    }
+    .led-amber-off {
+      background-color: #78350f;
+      opacity: 0.4;
+    }
+    .led-red-on {
+      background-color: #ef4444;
+      box-shadow: 0 0 10px #ef4444, inset 0 1px 3px rgba(255,255,255,0.6);
+    }
+    .led-red-off {
+      background-color: #7f1d1d;
+      opacity: 0.4;
+    }
+
+    /* Switch toggle */
+    .switch-slot {
+      width: 28px;
+      height: 52px;
+      background: #1e293b;
+      border-radius: 6px;
+      position: relative;
+      cursor: pointer;
+      border: 1px solid #334155;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.6);
+      user-select: none;
+    }
+    .switch-lever {
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(180deg, #94a3b8 0%, #475569 100%);
+      border-radius: 4px;
+      position: absolute;
+      left: 1px;
+      bottom: 2px;
+      transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.6);
+    }
+    .switch-lever.active {
+      bottom: 24px;
+      background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+    }
+
+    /* DIP Switch Lever */
+    .dip-slot {
+      width: 22px;
+      height: 42px;
+      background: #991b1b;
+      border-radius: 3px;
+      position: relative;
+      cursor: pointer;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+      user-select: none;
+    }
+    .dip-lever {
+      width: 18px;
+      height: 18px;
+      background: #f8fafc;
+      border-radius: 2px;
+      position: absolute;
+      left: 2px;
+      bottom: 2px;
+      transition: all 0.12s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+    .dip-lever.active {
+      bottom: 20px;
+      background: #facc15;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12">
+
+  <!-- Header Institucional -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center font-black text-xl shadow-lg shadow-cyan-500/20 text-white">
+          UC
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            Simulador ALU 8-bit & Memoria Unificada
+            <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 font-mono">FPGA DE0</span>
+          </h1>
+          <p class="text-xs text-slate-400">
+            Universidad del Cauca • FIET • Proyecto de Sistemas Digitales en VHDL
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="README.md" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 border border-slate-700 transition">
+          📖 Leer README
+        </a>
+        <a href="Guia_Presentacion_ALU.pdf" target="_blank" class="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition shadow shadow-blue-500/30">
+          📄 Guía PDF Sustentación
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Presets de Demostración Rápida -->
+  <section class="max-w-7xl mx-auto px-6 mt-6">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+          ⚡ Casos de Prueba Listos para Presentar (1-Clic)
+        </span>
+        <span class="text-xs text-slate-500">Haz clic en cualquier caso para cargar la configuración en la placa</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <button onclick="applyPreset('add')" class="text-left p-2.5 rounded-lg bg-slate-800/80 hover:bg-cyan-950/60 hover:border-cyan-500/40 border border-slate-700/60 transition group">
+          <div class="text-xs font-bold text-cyan-400 group-hover:text-cyan-300">1. Suma Básica</div>
+          <div class="text-[11px] text-slate-400">12 + 7 = 19 (Unsigned)</div>
+        </button>
+        <button onclick="applyPreset('overflow')" class="text-left p-2.5 rounded-lg bg-slate-800/80 hover:bg-amber-950/60 hover:border-amber-500/40 border border-slate-700/60 transition group">
+          <div class="text-xs font-bold text-amber-400 group-hover:text-amber-300">2. Overflow Signed</div>
+          <div class="text-[11px] text-slate-400">127 + 1 = -128 (V=1)</div>
+        </button>
+        <button onclick="applyPreset('sub_borrow')" class="text-left p-2.5 rounded-lg bg-slate-800/80 hover:bg-red-950/60 hover:border-red-500/40 border border-slate-700/60 transition group">
+          <div class="text-xs font-bold text-red-400 group-hover:text-red-300">3. Resta con Préstamo</div>
+          <div class="text-[11px] text-slate-400">0 - 1 = 255 (o -001)</div>
+        </button>
+        <button onclick="applyPreset('zero')" class="text-left p-2.5 rounded-lg bg-slate-800/80 hover:bg-purple-950/60 hover:border-purple-500/40 border border-slate-700/60 transition group">
+          <div class="text-xs font-bold text-purple-400 group-hover:text-purple-300">4. Bandera Zero (Z)</div>
+          <div class="text-[11px] text-slate-400">8 - 8 = 0 (Z=1)</div>
+        </button>
+        <button onclick="applyPreset('ram_write')" class="text-left p-2.5 rounded-lg bg-slate-800/80 hover:bg-emerald-950/60 hover:border-emerald-500/40 border border-slate-700/60 transition group">
+          <div class="text-xs font-bold text-emerald-400 group-hover:text-emerald-300">5. Guardar en RAM</div>
+          <div class="text-[11px] text-slate-400">Escribir en dir 0x80</div>
+        </button>
+        <button onclick="applyPreset('led_port')" class="text-left p-2.5 rounded-lg bg-slate-800/80 hover:bg-blue-950/60 hover:border-blue-500/40 border border-slate-700/60 transition group">
+          <div class="text-xs font-bold text-blue-400 group-hover:text-blue-300">6. Puerto E/S (LEDs)</div>
+          <div class="text-[11px] text-slate-400">Escribir en dir 0xE0</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contenedor Principal: Tarjeta FPGA y Protoboard -->
+  <main class="max-w-7xl mx-auto px-6 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Panel Izquierdo: Simulación Hardware Terasic DE0 (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+
+      <!-- La Placa FPGA Terasic DE0 -->
+      <div class="bg-gradient-to-b from-slate-900 to-slate-950 border-2 border-slate-700/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
+        
+        <!-- Detalles visuales de PCB -->
+        <div class="absolute top-3 right-4 flex items-center gap-2">
+          <span class="text-[10px] font-mono tracking-widest text-slate-500 uppercase font-semibold">Terasic DE0 • Cyclone III</span>
+          <div class="w-2.5 h-2.5 rounded-full bg-blue-500/40 border border-blue-400 animate-pulse"></div>
+        </div>
+
+        <!-- SECCIÓN 1: DISPLAYS DE 7 SEGMENTOS & BANDERAS -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center border-b border-slate-800 pb-6">
+          
+          <!-- Los 4 Displays de 7 segmentos -->
+          <div class="md:col-span-7 bg-black/90 p-4 rounded-xl border border-red-950/80 shadow-inner flex flex-col items-center">
+            <div class="flex items-center justify-between w-full mb-2 px-1">
+              <span class="text-[10px] font-mono text-red-500/80 uppercase tracking-wider font-bold">7-Segment Displays (HEX3..HEX0)</span>
+              <span id="disp-mode-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-red-950/60 text-red-400 border border-red-900/60">
+                DECIMAL (UNSIGNED)
+              </span>
+            </div>
+
+            <!-- Grilla de los 4 módulos SVG 7-segmentos -->
+            <div class="flex items-center justify-center gap-2 sm:gap-4 py-2">
+              <!-- HEX3 (Signo menos o Blank) -->
+              <div class="flex flex-col items-center">
+                <svg id="hex3" class="w-14 h-24 sm:w-16 sm:h-28" viewBox="0 0 100 160">
+                  <!-- Segments a, b, c, d, e, f, g -->
+                  <polygon id="hex3-a" class="seg-off" points="20,10 80,10 70,22 30,22" />
+                  <polygon id="hex3-b" class="seg-off" points="80,12 90,20 80,75 70,68 78,22" />
+                  <polygon id="hex3-c" class="seg-off" points="80,85 90,80 82,142 70,132 72,90" />
+                  <polygon id="hex3-d" class="seg-off" points="20,145 80,145 70,134 30,134" />
+                  <polygon id="hex3-e" class="seg-off" points="18,85 28,90 26,134 16,142 10,135" />
+                  <polygon id="hex3-f" class="seg-off" points="18,18 28,24 26,68 18,75 10,24" />
+                  <polygon id="hex3-g" class="seg-off" points="22,78 78,78 72,86 28,86" />
+                </svg>
+                <span class="text-[9px] font-mono text-slate-500 mt-1">HEX3</span>
+              </div>
+
+              <!-- HEX2 (Centenas o Hex Alto) -->
+              <div class="flex flex-col items-center">
+                <svg id="hex2" class="w-14 h-24 sm:w-16 sm:h-28" viewBox="0 0 100 160">
+                  <polygon id="hex2-a" class="seg-off" points="20,10 80,10 70,22 30,22" />
+                  <polygon id="hex2-b" class="seg-off" points="80,12 90,20 80,75 70,68 78,22" />
+                  <polygon id="hex2-c" class="seg-off" points="80,85 90,80 82,142 70,132 72,90" />
+                  <polygon id="hex2-d" class="seg-off" points="20,145 80,145 70,134 30,134" />
+                  <polygon id="hex2-e" class="seg-off" points="18,85 28,90 26,134 16,142 10,135" />
+                  <polygon id="hex2-f" class="seg-off" points="18,18 28,24 26,68 18,75 10,24" />
+                  <polygon id="hex2-g" class="seg-off" points="22,78 78,78 72,86 28,86" />
+                </svg>
+                <span class="text-[9px] font-mono text-slate-500 mt-1">HEX2</span>
+              </div>
+
+              <!-- HEX1 (Decenas o Hex Medio) -->
+              <div class="flex flex-col items-center">
+                <svg id="hex1" class="w-14 h-24 sm:w-16 sm:h-28" viewBox="0 0 100 160">
+                  <polygon id="hex1-a" class="seg-off" points="20,10 80,10 70,22 30,22" />
+                  <polygon id="hex1-b" class="seg-off" points="80,12 90,20 80,75 70,68 78,22" />
+                  <polygon id="hex1-c" class="seg-off" points="80,85 90,80 82,142 70,132 72,90" />
+                  <polygon id="hex1-d" class="seg-off" points="20,145 80,145 70,134 30,134" />
+                  <polygon id="hex1-e" class="seg-off" points="18,85 28,90 26,134 16,142 10,135" />
+                  <polygon id="hex1-f" class="seg-off" points="18,18 28,24 26,68 18,75 10,24" />
+                  <polygon id="hex1-g" class="seg-off" points="22,78 78,78 72,86 28,86" />
+                </svg>
+                <span class="text-[9px] font-mono text-slate-500 mt-1">HEX1</span>
+              </div>
+
+              <!-- HEX0 (Unidades o Hex Bajo) -->
+              <div class="flex flex-col items-center">
+                <svg id="hex0" class="w-14 h-24 sm:w-16 sm:h-28" viewBox="0 0 100 160">
+                  <polygon id="hex0-a" class="seg-off" points="20,10 80,10 70,22 30,22" />
+                  <polygon id="hex0-b" class="seg-off" points="80,12 90,20 80,75 70,68 78,22" />
+                  <polygon id="hex0-c" class="seg-off" points="80,85 90,80 82,142 70,132 72,90" />
+                  <polygon id="hex0-d" class="seg-off" points="20,145 80,145 70,134 30,134" />
+                  <polygon id="hex0-e" class="seg-off" points="18,85 28,90 26,134 16,142 10,135" />
+                  <polygon id="hex0-f" class="seg-off" points="18,18 28,24 26,68 18,75 10,24" />
+                  <polygon id="hex0-g" class="seg-off" points="22,78 78,78 72,86 28,86" />
+                </svg>
+                <span class="text-[9px] font-mono text-slate-500 mt-1">HEX0</span>
+              </div>
+            </div>
+
+            <!-- Lectura Digital Formateada -->
+            <div class="mt-2 text-xs font-mono text-slate-400 flex items-center gap-4">
+              <span>Valor Numérico: <b id="val-numeric" class="text-white">19</b></span>
+              <span>Hex: <b id="val-hex" class="text-cyan-400">0x13</b></span>
+              <span>Bin: <b id="val-bin" class="text-emerald-400">00010011</b></span>
+            </div>
+          </div>
+
+          <!-- Luces LED (LEDG9..LEDG0) -->
+          <div class="md:col-span-5 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <span class="text-[10px] font-mono text-emerald-500/80 uppercase tracking-wider font-bold block mb-3">
+              LEDs Verdes en Placa (LEDG[9:0])
+            </span>
+
+            <div class="space-y-3">
+              <!-- Banderas NZVC -->
+              <div>
+                <div class="text-[11px] font-semibold text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Banderas ALU (LEDG 3..0):</span>
+                  <span class="font-mono text-xs text-amber-400 font-bold" id="nzvc-str">NZVC = 0000</span>
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-center">
+                  <div class="bg-slate-900 p-1.5 rounded border border-slate-800 flex flex-col items-center">
+                    <div id="led-n" class="led led-green-off"></div>
+                    <span class="text-[10px] font-mono font-bold mt-1 text-slate-300">N (Neg)</span>
+                  </div>
+                  <div class="bg-slate-900 p-1.5 rounded border border-slate-800 flex flex-col items-center">
+                    <div id="led-z" class="led led-green-off"></div>
+                    <span class="text-[10px] font-mono font-bold mt-1 text-slate-300">Z (Zero)</span>
+                  </div>
+                  <div class="bg-slate-900 p-1.5 rounded border border-slate-800 flex flex-col items-center">
+                    <div id="led-v" class="led led-green-off"></div>
+                    <span class="text-[10px] font-mono font-bold mt-1 text-slate-300">V (Ovf)</span>
+                  </div>
+                  <div class="bg-slate-900 p-1.5 rounded border border-slate-800 flex flex-col items-center">
+                    <div id="led-c" class="led led-green-off"></div>
+                    <span class="text-[10px] font-mono font-bold mt-1 text-slate-300">C (Carry)</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Indicadores de Modo y Puerto de Salida 0xE0 -->
+              <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+                <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                  <div class="text-[10px] text-slate-400 mb-1.5">Control (LEDG 5, 4)</div>
+                  <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5">
+                      <div id="led-wr" class="led led-amber-off"></div>
+                      <span class="text-[10px] font-mono">WR (5)</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <div id="led-mode" class="led led-green-off"></div>
+                      <span class="text-[10px] font-mono">MEM (4)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                  <div class="text-[10px] text-slate-400 mb-1.5">Puerto 0xE0 (LEDG 9..6)</div>
+                  <div class="flex items-center justify-between px-1">
+                    <div class="flex flex-col items-center">
+                      <div id="led-p3" class="led led-green-off"></div>
+                      <span class="text-[8px] font-mono text-slate-500">P3</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div id="led-p2" class="led led-green-off"></div>
+                      <span class="text-[8px] font-mono text-slate-500">P2</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div id="led-p1" class="led led-green-off"></div>
+                      <span class="text-[8px] font-mono text-slate-500">P1</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                      <div id="led-p0" class="led led-green-off"></div>
+                      <span class="text-[8px] font-mono text-slate-500">P0</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECCIÓN 2: SWITCHES EN PLACA (SW9..SW0) Y BOTONES (KEY1..KEY0) -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-bold">
+              Interruptores en Tarjeta DE0 (SW[9:0])
+            </span>
+            <span class="text-xs text-slate-400">
+              Operación ALU actual: <b id="alu-op-name" class="text-cyan-400">A + B (Suma)</b>
+            </span>
+          </div>
+
+          <!-- Fila de Switches SW9..SW0 -->
+          <div class="grid grid-cols-10 gap-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <!-- SW9: Mode (ALU vs Memoria) -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-cyan-400 font-bold mb-1">MODO</span>
+              <div class="switch-slot" onclick="toggleSW(9)">
+                <div id="sw-lever-9" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW9</span>
+              <span id="sw-val-9" class="text-[8px] font-mono text-slate-500">0 (ALU)</span>
+            </div>
+
+            <!-- SW8: ALU_Sel(2) -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-amber-400 font-bold mb-1">SEL2</span>
+              <div class="switch-slot" onclick="toggleSW(8)">
+                <div id="sw-lever-8" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW8</span>
+              <span id="sw-val-8" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW7: ALU_Sel(1) -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-amber-400 font-bold mb-1">SEL1</span>
+              <div class="switch-slot" onclick="toggleSW(7)">
+                <div id="sw-lever-7" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW7</span>
+              <span id="sw-val-7" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW6: ALU_Sel(0) -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-amber-400 font-bold mb-1">SEL0</span>
+              <div class="switch-slot" onclick="toggleSW(6)">
+                <div id="sw-lever-6" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW6</span>
+              <span id="sw-val-6" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW5: writen -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-red-400 font-bold mb-1">WRITE</span>
+              <div class="switch-slot" onclick="toggleSW(5)">
+                <div id="sw-lever-5" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW5</span>
+              <span id="sw-val-5" class="text-[8px] font-mono text-slate-500">0 (Read)</span>
+            </div>
+
+            <!-- SW4: Reservado -->
+            <div class="flex flex-col items-center opacity-40">
+              <span class="text-[9px] font-mono text-slate-500 font-bold mb-1">RES</span>
+              <div class="switch-slot" onclick="toggleSW(4)">
+                <div id="sw-lever-4" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW4</span>
+              <span id="sw-val-4" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW3: B[7] -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-emerald-400 font-bold mb-1">B[7]</span>
+              <div class="switch-slot" onclick="toggleSW(3)">
+                <div id="sw-lever-3" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW3</span>
+              <span id="sw-val-3" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW2: B[6] -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-emerald-400 font-bold mb-1">B[6]</span>
+              <div class="switch-slot" onclick="toggleSW(2)">
+                <div id="sw-lever-2" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW2</span>
+              <span id="sw-val-2" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW1: B[5] -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-emerald-400 font-bold mb-1">B[5]</span>
+              <div class="switch-slot" onclick="toggleSW(1)">
+                <div id="sw-lever-1" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW1</span>
+              <span id="sw-val-1" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+
+            <!-- SW0: B[4] -->
+            <div class="flex flex-col items-center">
+              <span class="text-[9px] font-mono text-emerald-400 font-bold mb-1">B[4]</span>
+              <div class="switch-slot" onclick="toggleSW(0)">
+                <div id="sw-lever-0" class="switch-lever"></div>
+              </div>
+              <span class="text-[9px] font-mono text-slate-400 mt-1">SW0</span>
+              <span id="sw-val-0" class="text-[8px] font-mono text-slate-500">0</span>
+            </div>
+          </div>
+
+          <!-- Botones Pulsadores KEY[1:0] -->
+          <div class="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-800">
+            <div class="text-xs text-slate-400">Pulsadores con Antirrebote (20 ms):</div>
+            
+            <button id="btn-key1" onclick="pulseClock()" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-xs font-bold text-white transition flex items-center gap-2 shadow-lg shadow-blue-500/25">
+              <span>⏱️ KEY[1] Reloj / Pulso Write</span>
+            </button>
+
+            <button id="btn-key0" onclick="resetSystem()" class="px-4 py-2 rounded-lg bg-red-600/80 hover:bg-red-600 active:scale-95 text-xs font-bold text-white transition flex items-center gap-2">
+              <span>🔄 KEY[0] Reset Maestro</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: DIP SWITCH EXTERNO (PROTOBOARD) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded bg-red-600"></div>
+            <h3 class="text-sm font-bold text-white">DIP Switch Externo (12 Posiciones en Protoboard)</h3>
+          </div>
+          <span class="text-xs font-mono text-slate-400">
+            A = <span id="val-a-dec" class="text-cyan-400 font-bold">12</span> | B = <span id="val-b-dec" class="text-emerald-400 font-bold">7</span>
+          </span>
+        </div>
+
+        <!-- 12 DIPs -->
+        <div class="grid grid-cols-6 sm:grid-cols-12 gap-2 bg-slate-950 p-4 rounded-lg border border-slate-800 text-center">
+          <!-- DIP 1..4: A[3:0] -->
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-cyan-400 font-bold">A[3]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(1)"><div id="dip-lever-1" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 1</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-cyan-400 font-bold">A[2]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(2)"><div id="dip-lever-2" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 2</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-cyan-400 font-bold">A[1]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(3)"><div id="dip-lever-3" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 3</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-cyan-400 font-bold">A[0]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(4)"><div id="dip-lever-4" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 4</span>
+          </div>
+
+          <!-- DIP 5..8: B[3:0] -->
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-emerald-400 font-bold">B[3]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(5)"><div id="dip-lever-5" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 5</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-emerald-400 font-bold">B[2]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(6)"><div id="dip-lever-6" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 6</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-emerald-400 font-bold">B[1]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(7)"><div id="dip-lever-7" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 7</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-emerald-400 font-bold">B[0]</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(8)"><div id="dip-lever-8" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 8</span>
+          </div>
+
+          <!-- DIP 9..12: Modos especiales y direcciones -->
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-purple-400 font-bold">HEX</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(9)"><div id="dip-lever-9" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 9</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-yellow-400 font-bold">SEL_A</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(10)"><div id="dip-lever-10" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 10</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-pink-400 font-bold">SIGNO</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(11)"><div id="dip-lever-11" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 11</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <span class="text-[9px] font-mono text-orange-400 font-bold">RAM/ROM</span>
+            <div class="dip-slot my-1" onclick="toggleDIP(12)"><div id="dip-lever-12" class="dip-lever"></div></div>
+            <span class="text-[9px] font-mono text-slate-500">DIP 12</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3 text-[11px] text-slate-400">
+          <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80">
+            <b>DIP 9:</b> Formato (<span id="txt-dip9" class="text-cyan-400">0 = Decimal</span>)
+          </div>
+          <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80">
+            <b>DIP 11:</b> Signo (<span id="txt-dip11" class="text-emerald-400">0 = Sin Signo</span>)
+          </div>
+          <div class="p-2 rounded bg-slate-950/60 border border-slate-800/80">
+            <b>DIP 12:</b> Bloque (<span id="txt-dip12" class="text-amber-400">0 = ROM 0x00</span>)
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Panel Derecho: Explicación Didáctica y Visor de Memoria (4 cols) -->
+    <div class="lg:col-span-4 space-y-6">
+
+      <!-- Tarjeta Didáctica: Qué está pasando ahora mismo -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-3">
+          <span>🧠 ¿Qué está haciendo el procesador?</span>
+        </h3>
+        
+        <div id="edu-card" class="text-xs text-slate-300 space-y-2 leading-relaxed bg-slate-950 p-4 rounded-lg border border-slate-800">
+          <p>
+            Actualmente la ALU está sumando <code class="text-cyan-400 font-mono font-bold">A = 12</code> y <code class="text-emerald-400 font-mono font-bold">B = 7</code>.
+          </p>
+          <div class="p-2 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-1">
+            <div>12 (00001100) + 7 (00000111)</div>
+            <div class="text-emerald-400 font-bold">= 19 (00010011)</div>
+          </div>
+          <p>
+            No se generó desbordamiento ni acarreo (<b class="text-slate-400">V=0, C=0</b>), y como el resultado no es cero, <b class="text-slate-400">Z=0</b>.
+          </p>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-slate-800">
+          <div class="text-xs font-semibold text-slate-400 mb-1">Estado de Banderas NZVC:</div>
+          <ul class="text-[11px] text-slate-400 space-y-1">
+            <li>• <b class="text-white">N (Negativo):</b> <span id="explain-n">0 (El bit más significativo es 0)</span></li>
+            <li>• <b class="text-white">Z (Cero):</b> <span id="explain-z">0 (El resultado es distinto de 0)</span></li>
+            <li>• <b class="text-white">V (Overflow):</b> <span id="explain-v">0 (No hay desbordamiento en signo)</span></li>
+            <li>• <b class="text-white">C (Carry):</b> <span id="explain-c">0 (No superó 8 bits)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Visor del Mapa de Memoria (256 Bytes) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>💾 Mapa de Memoria</span>
+          </h3>
+          <span class="text-[10px] font-mono text-slate-400">Dir Actual: <b id="mem-curr-addr" class="text-amber-400">0x00</b></span>
+        </div>
+
+        <!-- Selector de Región -->
+        <div class="flex gap-1 mb-3 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+          <button onclick="setMemTab('rom')" id="tab-rom" class="flex-1 py-1 rounded bg-blue-600 text-white font-semibold transition">
+            ROM (0x00)
+          </button>
+          <button onclick="setMemTab('ram')" id="tab-ram" class="flex-1 py-1 rounded hover:bg-slate-800 text-slate-400 font-semibold transition">
+            RAM (0x80)
+          </button>
+          <button onclick="setMemTab('ports')" id="tab-ports" class="flex-1 py-1 rounded hover:bg-slate-800 text-slate-400 font-semibold transition">
+            Puertos E/S
+          </button>
+        </div>
+
+        <!-- Tabla de Memoria con Scroll -->
+        <div class="bg-slate-950 rounded-lg border border-slate-800 p-2 font-mono text-[11px] max-h-48 overflow-y-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="text-slate-500 border-b border-slate-800">
+                <th class="pb-1">Dir</th>
+                <th class="pb-1">Hex</th>
+                <th class="pb-1">Dec</th>
+                <th class="pb-1">Detalle</th>
+              </tr>
+            </thead>
+            <tbody id="mem-table-body" class="divide-y divide-slate-800/60">
+              <!-- Se llena dinámicamente con JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-3 text-[10px] text-slate-400 flex items-center justify-between">
+          <span>Para escribir en RAM: Pon <code class="text-red-400">SW5=1</code> y pulsa <code class="text-blue-400">KEY1</code></span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- LÓGICA DEL SIMULADOR EN JAVASCRIPT -->
+  <script>
+    // ESTADO DEL HARDWARE
+    const state = {
+      // Switches en placa SW[9:0]
+      sw: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // SW[0]..SW[9]
+      // DIP Switch Externo 1..12
+      dip: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // 0-based: index 0 = DIP1, index 11 = DIP12
+      // Memoria de 256 bytes (0x00 .. 0xFF)
+      mem: new Uint8Array(256),
+      // Puerto de salida 0xE0 (4 bits hacia LEDG[9:6])
+      port_out_00: 0,
+      activeMemTab: 'rom'
+    };
+
+    // Inicializar ROM con instrucciones y valores de ejemplo
+    state.mem[0x00] = 0x86; // LDA_IMM
+    state.mem[0x01] = 0x0C; // Valor 12
+    state.mem[0x02] = 0x87; // ADD_IMM
+    state.mem[0x03] = 0x07; // Valor 7
+    state.mem[0x04] = 0x88; // STA_DIR
+    state.mem[0x05] = 0x80; // Dir 0x80 (RAM)
+    state.mem[0x06] = 0x89; // STA_DIR
+    state.mem[0x07] = 0xE0; // Dir 0xE0 (Puertos)
+    for (let i = 0x08; i < 0x80; i++) {
+      state.mem[i] = (i * 3 + 7) & 0xFF; // Constantes precargadas
+    }
+
+    // Configuración inicial por defecto: Suma 12 + 7
+    // A = 12 (DIP 1..4 = 1100 -> DIP1=1, DIP2=1, DIP3=0, DIP4=0)
+    state.dip[0] = 1; // DIP 1 (A[3])
+    state.dip[1] = 1; // DIP 2 (A[2])
+    state.dip[2] = 0; // DIP 3 (A[1])
+    state.dip[3] = 0; // DIP 4 (A[0])
+    // B = 7 (SW[3:0]=0000, DIP 5..8=0111 -> DIP5=0, DIP6=1, DIP7=1, DIP8=1)
+    state.dip[4] = 0; // DIP 5 (B[3])
+    state.dip[5] = 1; // DIP 6 (B[2])
+    state.dip[6] = 1; // DIP 7 (B[1])
+    state.dip[7] = 1; // DIP 8 (B[0])
+
+    // TABLA DE DECODIFICACIÓN 7 SEGMENTOS (Activo en Bajo, a..g)
+    // 0: encendido, 1: apagado
+    // ' ' = blank, '-' = signo menos (solo segmento g encendido)
+    const DIGIT_PATTERNS = {
+      0: [1,1,1,1,1,1,0],
+      1: [0,1,1,0,0,0,0],
+      2: [1,1,0,1,1,0,1],
+      3: [1,1,1,1,0,0,1],
+      4: [0,1,1,0,0,1,1],
+      5: [1,0,1,1,0,1,1],
+      6: [1,0,1,1,1,1,1],
+      7: [1,1,1,0,0,0,0],
+      8: [1,1,1,1,1,1,1],
+      9: [1,1,1,1,0,1,1],
+      10: [1,1,1,0,1,1,1], // A
+      11: [0,0,1,1,1,1,1], // b
+      12: [1,0,0,1,1,1,0], // C
+      13: [0,1,1,1,1,0,1], // d
+      14: [1,0,0,1,1,1,1], // E
+      15: [1,0,0,0,1,1,1], // F
+      '-': [0,0,0,0,0,0,1], // Menos
+      ' ': [0,0,0,0,0,0,0]  // Blank
+    };
+
+    // FUNCIONES DE CONTROL DE INTERRUPTORES
+    function toggleSW(index) {
+      state.sw[index] = state.sw[index] ? 0 : 1;
+      updateSimulation();
+    }
+
+    function toggleDIP(num) {
+      const idx = num - 1;
+      state.dip[idx] = state.dip[idx] ? 0 : 1;
+      updateSimulation();
+    }
+
+    function pulseClock() {
+      const btn = document.getElementById('btn-key1');
+      btn.classList.add('bg-blue-400');
+      setTimeout(() => btn.classList.remove('bg-blue-400'), 150);
+
+      // Si SW5 (writen) está en 1, escribe en memoria
+      if (state.sw[5] === 1) {
+        const address = calculateAddress();
+        const dataToWrite = calculateALU().result & 0xFF;
+        state.mem[address] = dataToWrite;
+
+        // Si la dirección es 0xE0, actualiza el puerto de salida de LEDs
+        if (address === 0xE0) {
+          state.port_out_00 = dataToWrite & 0x0F;
+        }
+
+        renderMemoryTable();
+        updateSimulation();
+      }
+    }
+
+    function resetSystem() {
+      const btn = document.getElementById('btn-key0');
+      btn.classList.add('bg-red-400');
+      setTimeout(() => btn.classList.remove('bg-red-400'), 150);
+
+      // Limpia RAM (0x80 a 0xDF) y puerto 0xE0
+      for (let i = 0x80; i <= 0xDF; i++) {
+        state.mem[i] = 0;
+      }
+      state.port_out_00 = 0;
+      renderMemoryTable();
+      updateSimulation();
+    }
+
+    // CALCULO DE ENTRADAS A Y B
+    function getOperandA() {
+      return (state.dip[0] << 3) | (state.dip[1] << 2) | (state.dip[2] << 1) | state.dip[3];
+    }
+
+    function getOperandB() {
+      const bHigh = (state.sw[3] << 3) | (state.sw[2] << 2) | (state.sw[1] << 1) | state.sw[0];
+      const bLow = (state.dip[4] << 3) | (state.dip[5] << 2) | (state.dip[6] << 1) | state.dip[7];
+      return (bHigh << 4) | bLow;
+    }
+
+    function calculateAddress() {
+      // DIP 12 controla el bit más significativo (0x00 para ROM, 0x80 para RAM)
+      const baseBit = state.dip[11] ? 0x80 : 0x00;
+      
+      // Si DIP 10 = 1, la dirección viene del operando A
+      if (state.dip[9] === 1) {
+        return baseBit | getOperandA();
+      } else {
+        // Viene del operando A o B
+        return baseBit | (getOperandA() & 0x0F);
+      }
+    }
+
+    // MOTOR DE CÁLCULO DE LA ALU (VHDL EXACTO)
+    function calculateALU() {
+      const A = getOperandA();
+      const B = getOperandB();
+      const sel = (state.sw[8] << 2) | (state.sw[7] << 1) | state.sw[6];
+
+      let rawResult = 0;
+      let C = 0;
+      let V = 0;
+      let opName = "";
+
+      switch (sel) {
+        case 0: // ADD (A + B)
+          opName = "A + B (Suma)";
+          rawResult = A + B;
+          C = rawResult > 255 ? 1 : 0;
+          // Overflow: (A7 == B7) and (A7 != R7)
+          {
+            const a7 = (A >> 7) & 1;
+            const b7 = (B >> 7) & 1;
+            const r7 = (rawResult >> 7) & 1;
+            V = ((a7 === b7) && (a7 !== r7)) ? 1 : 0;
+          }
+          break;
+
+        case 1: // SUB (A - B)
+          opName = "A - B (Resta)";
+          rawResult = A - B;
+          // In our VHDL: CARRY_IS_NOT_BORROW => true
+          // If A >= B, no borrow -> C = 1; If A < B, borrow -> C = 0
+          C = A >= B ? 1 : 0;
+          // Overflow: (A7 != B7) and (A7 != R7)
+          {
+            const a7 = (A >> 7) & 1;
+            const b7 = (B >> 7) & 1;
+            const r7 = ((rawResult & 0xFF) >> 7) & 1;
+            V = ((a7 !== b7) && (a7 !== r7)) ? 1 : 0;
+          }
+          break;
+
+        case 2: // AND
+          opName = "A AND B (Lógica)";
+          rawResult = A & B;
+          C = 0;
+          V = 0;
+          break;
+
+        case 3: // OR
+          opName = "A OR B (Lógica)";
+          rawResult = A | B;
+          C = 0;
+          V = 0;
+          break;
+
+        case 4: // INC (A + 1)
+          opName = "A + 1 (Incremento)";
+          rawResult = A + 1;
+          C = rawResult > 255 ? 1 : 0;
+          V = (A === 0x7F) ? 1 : 0;
+          break;
+
+        case 5: // DEC (A - 1)
+          opName = "A - 1 (Decremento)";
+          rawResult = A - 1;
+          C = A >= 1 ? 1 : 0;
+          V = (A === 0x80) ? 1 : 0;
+          break;
+
+        case 6: // NOT
+          opName = "NOT A (Inversión)";
+          rawResult = (~A) & 0xFF;
+          C = 0;
+          V = 0;
+          break;
+
+        case 7: // PASS
+          opName = "A (Buffer / Passthrough)";
+          rawResult = A;
+          C = 0;
+          V = 0;
+          break;
+      }
+
+      const result8 = rawResult & 0xFF;
+      const N = (result8 >> 7) & 1;
+      const Z = result8 === 0 ? 1 : 0;
+
+      return {
+        A, B, sel, opName,
+        result: result8,
+        rawResult: rawResult,
+        flags: { N, Z, V, C }
+      };
+    }
+
+    // CONVERSIÓN BCD (DOUBLE DABBLE)
+    function decodeDisplays(aluRes) {
+      const isMemMode = state.sw[9] === 1;
+      const isHex = state.dip[8] === 1; // DIP 9
+      const isSigned = state.dip[10] === 1; // DIP 11
+
+      let displayVal = isMemMode ? state.mem[calculateAddress()] : aluRes.result;
+
+      let hex3Val = ' ';
+      let hex2Val = 0;
+      let hex1Val = 0;
+      let hex0Val = 0;
+
+      if (isHex) {
+        // Modo HEX
+        hex3Val = ' ';
+        hex2Val = ' ';
+        hex1Val = (displayVal >> 4) & 0x0F;
+        hex0Val = displayVal & 0x0F;
+      } else {
+        // Modo Decimal
+        if (isSigned) {
+          // Con Signo (Complemento a 2, -128 a +127)
+          if ((displayVal & 0x80) !== 0) {
+            // Negativo
+            hex3Val = '-';
+            const mag = (256 - displayVal) & 0xFF;
+            hex2Val = Math.floor(mag / 100);
+            hex1Val = Math.floor((mag % 100) / 10);
+            hex0Val = mag % 10;
+          } else {
+            // Positivo
+            hex3Val = ' ';
+            hex2Val = Math.floor(displayVal / 100);
+            hex1Val = Math.floor((displayVal % 100) / 10);
+            hex0Val = displayVal % 10;
+          }
+        } else {
+          // Sin Signo (0 a 255, o hasta 510 si es suma con acarreo)
+          let num = displayVal;
+          if (!isMemMode && aluRes.sel === 0 && aluRes.flags.C === 1) {
+            num = 256 + displayVal;
+          }
+          hex3Val = ' ';
+          hex2Val = Math.floor(num / 100);
+          hex1Val = Math.floor((num % 100) / 10);
+          hex0Val = num % 10;
+        }
+      }
+
+      return { hex3Val, hex2Val, hex1Val, hex0Val, displayVal };
+    }
+
+    // RENDERIZADO VISUAL DEL HARDWARE
+    function renderDigit(prefix, value) {
+      const segs = ['a','b','c','d','e','f','g'];
+      const pattern = DIGIT_PATTERNS[value] || DIGIT_PATTERNS[' '];
+
+      segs.forEach((seg, idx) => {
+        const el = document.getElementById(`${prefix}-${seg}`);
+        if (!el) return;
+        if (pattern[idx] === 1) {
+          el.setAttribute('class', 'seg-on');
+        } else {
+          el.setAttribute('class', 'seg-off');
+        }
+      });
+    }
+
+    function updateSimulation() {
+      const alu = calculateALU();
+      const decoded = decodeDisplays(alu);
+
+      // 1. Renderizar Displays 7-Segmentos
+      renderDigit('hex3', decoded.hex3Val);
+      renderDigit('hex2', decoded.hex2Val);
+      renderDigit('hex1', decoded.hex1Val);
+      renderDigit('hex0', decoded.hex0Val);
+
+      // Etiquetas numéricas
+      const isSigned = state.dip[10] === 1;
+      let signedVal = decoded.displayVal;
+      if (isSigned && signedVal >= 128) signedVal = signedVal - 256;
+
+      document.getElementById('val-numeric').textContent = isSigned ? signedVal : decoded.displayVal;
+      document.getElementById('val-hex').textContent = `0x${decoded.displayVal.toString(16).toUpperCase().padStart(2, '0')}`;
+      document.getElementById('val-bin').textContent = decoded.displayVal.toString(2).padStart(8, '0');
+
+      // 2. Renderizar LEDs
+      // Flags NZVC
+      setLED('led-n', alu.flags.N);
+      setLED('led-z', alu.flags.Z);
+      setLED('led-v', alu.flags.V);
+      setLED('led-c', alu.flags.C);
+      document.getElementById('nzvc-str').textContent = `NZVC = ${alu.flags.N}${alu.flags.Z}${alu.flags.V}${alu.flags.C}`;
+
+      // Mode & WR
+      setLED('led-mode', state.sw[9]);
+      setLED('led-wr', state.sw[5]);
+
+      // Puerto 0xE0 (LEDG 9..6)
+      setLED('led-p3', (state.port_out_00 >> 3) & 1);
+      setLED('led-p2', (state.port_out_00 >> 2) & 1);
+      setLED('led-p1', (state.port_out_00 >> 1) & 1);
+      setLED('led-p0', state.port_out_00 & 1);
+
+      // 3. Renderizar Palancas de Switches (SW9..SW0)
+      for (let i = 0; i < 10; i++) {
+        const lever = document.getElementById(`sw-lever-9`.replace('9', i));
+        const valSpan = document.getElementById(`sw-val-9`.replace('9', i));
+        if (lever) {
+          if (state.sw[i] === 1) lever.classList.add('active');
+          else lever.classList.remove('active');
+        }
+        if (valSpan && i !== 9 && i !== 5) {
+          valSpan.textContent = state.sw[i];
+        }
+      }
+      document.getElementById('sw-val-9').textContent = state.sw[9] ? '1 (MEM)' : '0 (ALU)';
+      document.getElementById('sw-val-5').textContent = state.sw[5] ? '1 (Write)' : '0 (Read)';
+      document.getElementById('alu-op-name').textContent = alu.opName;
+
+      // 4. Renderizar DIP Switches
+      for (let i = 1; i <= 12; i++) {
+        const lever = document.getElementById(`dip-lever-${i}`);
+        if (lever) {
+          if (state.dip[i-1] === 1) lever.classList.add('active');
+          else lever.classList.remove('active');
+        }
+      }
+
+      document.getElementById('val-a-dec').textContent = alu.A;
+      document.getElementById('val-b-dec').textContent = alu.B;
+      document.getElementById('txt-dip9').textContent = state.dip[8] ? "1 = Hexadecimal" : "0 = Decimal";
+      document.getElementById('txt-dip11').textContent = state.dip[10] ? "1 = Con Signo (-128..+127)" : "0 = Sin Signo (0..255)";
+      document.getElementById('txt-dip12').textContent = state.dip[11] ? "1 = RAM (0x80..0xDF)" : "0 = ROM (0x00..0x7F)";
+
+      const badge = document.getElementById('disp-mode-badge');
+      if (state.dip[8] === 1) {
+        badge.textContent = "HEXADECIMAL";
+      } else if (state.dip[10] === 1) {
+        badge.textContent = "DECIMAL (SIGNED COMPL. 2)";
+      } else {
+        badge.textContent = "DECIMAL (UNSIGNED)";
+      }
+
+      // 5. Explicación Dinámica
+      updateExplanation(alu, decoded);
+    }
+
+    function setLED(id, active) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (id === 'led-wr') {
+        el.className = active ? 'led led-amber-on' : 'led led-amber-off';
+      } else {
+        el.className = active ? 'led led-green-on' : 'led led-green-off';
+      }
+    }
+
+    function updateExplanation(alu, decoded) {
+      const eduCard = document.getElementById('edu-card');
+      const isMemMode = state.sw[9] === 1;
+      const addr = calculateAddress();
+
+      let html = "";
+      if (isMemMode) {
+        let region = "ROM";
+        if (addr >= 0x80 && addr <= 0xDF) region = "RAM";
+        else if (addr >= 0xE0 && addr <= 0xEF) region = "Puerto de Salida (LEDs)";
+        else if (addr >= 0xF0) region = "Puerto de Entrada";
+
+        html = `
+          <p>
+            Modo <b>Memoria Activo (SW9 = 1)</b>. El bus de direcciones apunta a <code class="text-amber-400 font-mono font-bold">0x${addr.toString(16).toUpperCase().padStart(2, '0')}</code> (${region}).
+          </p>
+          <div class="p-2 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-1">
+            <div>Dato leído en el bus: <b class="text-cyan-400">0x${state.mem[addr].toString(16).toUpperCase().padStart(2, '0')}</b> (${state.mem[addr]} dec)</div>
+            <div>Estado de Escritura (SW5): <b class="${state.sw[5] ? 'text-red-400' : 'text-slate-400'}">${state.sw[5] ? 'HABILITADA (Pulsa KEY1 para guardar)' : 'Solo Lectura'}</b></div>
+          </div>
+        `;
+      } else {
+        html = `
+          <p>
+            La ALU está ejecutando <b class="text-cyan-400">${alu.opName}</b> con los operandos <code class="text-cyan-300 font-mono">A = ${alu.A}</code> y <code class="text-emerald-300 font-mono">B = ${alu.B}</code>.
+          </p>
+          <div class="p-2 rounded bg-slate-900 border border-slate-800 font-mono text-[11px] space-y-1">
+            <div>Operación binaria: A (${alu.A.toString(2).padStart(8, '0')}) y B (${alu.B.toString(2).padStart(8, '0')})</div>
+            <div class="text-emerald-400 font-bold">= Resultado: ${alu.result} (0x${alu.result.toString(16).toUpperCase().padStart(2, '0')})</div>
+          </div>
+        `;
+      }
+      eduCard.innerHTML = html;
+
+      // Explicar banderas
+      document.getElementById('explain-n').textContent = alu.flags.N ? "1 (El bit 7 es 1, es negativo en complemento a 2)" : "0 (Positivo o cero)";
+      document.getElementById('explain-z').textContent = alu.flags.Z ? "1 (El resultado es exactamente CERO)" : "0 (Resultado diferente de cero)";
+      document.getElementById('explain-v').textContent = alu.flags.V ? "1 (¡DESBORDAMIENTO! Dos números del mismo signo dieron uno de signo opuesto)" : "0 (No hay desbordamiento)";
+      document.getElementById('explain-c').textContent = alu.flags.C ? (alu.sel === 1 ? "1 (Resta sin préstamo, A >= B)" : "1 (¡Acarreo generado! Superó 255)") : (alu.sel === 1 ? "0 (¡Préstamo requerido! A < B)" : "0 (Sin acarreo)");
+
+      document.getElementById('mem-curr-addr').textContent = `0x${addr.toString(16).toUpperCase().padStart(2, '0')}`;
+    }
+
+    // VISOR DE MEMORIA
+    function setMemTab(tab) {
+      state.activeMemTab = tab;
+      document.getElementById('tab-rom').className = tab === 'rom' ? 'flex-1 py-1 rounded bg-blue-600 text-white font-semibold transition' : 'flex-1 py-1 rounded hover:bg-slate-800 text-slate-400 font-semibold transition';
+      document.getElementById('tab-ram').className = tab === 'ram' ? 'flex-1 py-1 rounded bg-blue-600 text-white font-semibold transition' : 'flex-1 py-1 rounded hover:bg-slate-800 text-slate-400 font-semibold transition';
+      document.getElementById('tab-ports').className = tab === 'ports' ? 'flex-1 py-1 rounded bg-blue-600 text-white font-semibold transition' : 'flex-1 py-1 rounded hover:bg-slate-800 text-slate-400 font-semibold transition';
+      renderMemoryTable();
+    }
+
+    function renderMemoryTable() {
+      const tbody = document.getElementById('mem-table-body');
+      let start = 0x00;
+      let end = 0x0F;
+      let descPrefix = "ROM";
+
+      if (state.activeMemTab === 'ram') {
+        start = 0x80;
+        end = 0x8F;
+        descPrefix = "RAM";
+      } else if (state.activeMemTab === 'ports') {
+        start = 0xE0;
+        end = 0xEF;
+        descPrefix = "Port_Out";
+      }
+
+      let rows = "";
+      for (let i = start; i <= end; i++) {
+        const val = state.mem[i];
+        const isCurrent = i === calculateAddress();
+        rows += `
+          <tr class="${isCurrent ? 'bg-blue-950/60 font-bold text-cyan-300' : 'text-slate-300'}">
+            <td class="py-0.5">0x${i.toString(16).toUpperCase().padStart(2, '0')}</td>
+            <td class="py-0.5 text-amber-400">0x${val.toString(16).toUpperCase().padStart(2, '0')}</td>
+            <td class="py-0.5">${val}</td>
+            <td class="py-0.5 text-slate-500 text-[10px]">${descPrefix} [${i - start}]</td>
+          </tr>
+        `;
+      }
+      tbody.innerHTML = rows;
+    }
+
+    // PRESETS DE 1-CLIC
+    function applyPreset(name) {
+      // Reset switches
+      state.sw.fill(0);
+      state.dip.fill(0);
+
+      switch (name) {
+        case 'add':
+          // 12 + 7 = 19
+          // A = 12 (1100 -> DIP 1=1, DIP 2=1)
+          state.dip[0] = 1; state.dip[1] = 1;
+          // B = 7 (0111 -> DIP 6,7,8 = 1)
+          state.dip[5] = 1; state.dip[6] = 1; state.dip[7] = 1;
+          // ALU_Sel = 000 (ADD)
+          break;
+
+        case 'overflow':
+          // 127 + 1 = -128 (V=1) en Signed
+          // A = 15 (para este ejemplo didáctico A=127 si configuramos bits altos)
+          // Configuramos A=7 (0111), B=1 (0001)
+          // O para mostrar desbordamiento real de 8 bits:
+          // B = 127 (B[7:4] = 0111 en SW[3:0], B[3:0] = 1111 en DIP)
+          state.sw[2] = 1; state.sw[1] = 1; state.sw[0] = 1; // SW2,1,0 = 7
+          state.dip[4] = 1; state.dip[5] = 1; state.dip[6] = 1; state.dip[7] = 1; // DIP 5..8 = 15 -> B = 127
+          // A = 1 (DIP 4 = 1)
+          state.dip[3] = 1;
+          // DIP 11 = 1 (Signed)
+          state.dip[10] = 1;
+          // ALU_Sel = 000 (ADD)
+          break;
+
+        case 'sub_borrow':
+          // 0 - 1 = 255 (unsigned) o -001 (signed)
+          // A = 0, B = 1
+          state.dip[7] = 1; // B = 1
+          // ALU_Sel = 001 (SW6 = 1) -> SUB
+          state.sw[6] = 1;
+          // Dejar en Unsigned para mostrar 255, luego el usuario puede subir DIP 11
+          break;
+
+        case 'zero':
+          // 8 - 8 = 0 (Z=1)
+          // A = 8 (DIP 1 = 1)
+          state.dip[0] = 1;
+          // B = 8 (DIP 5 = 1)
+          state.dip[4] = 1;
+          // ALU_Sel = 001 (SUB)
+          state.sw[6] = 1;
+          break;
+
+        case 'ram_write':
+          // Escribir en RAM (SW9 = 1, SW5 = 1, DIP 12 = 1)
+          state.sw[9] = 1; // Modo Memoria
+          state.sw[5] = 1; // Write Enable
+          state.dip[11] = 1; // DIP 12 = 1 (Dir 0x80)
+          // Preparamos dato en A = 9
+          state.dip[0] = 1; state.dip[3] = 1;
+          setMemTab('ram');
+          break;
+
+        case 'led_port':
+          // Escribir en puerto 0xE0 para prender los LEDs verdes
+          state.sw[9] = 1; // Modo Memoria
+          state.sw[5] = 1; // Write Enable
+          // Configuramos dirección 0xE0 y dato 0x0F (prender todos)
+          state.mem[0xE0] = 0x0F;
+          state.port_out_00 = 0x0F;
+          setMemTab('ports');
+          break;
+      }
+
+      updateSimulation();
+    }
+
+    // Inicialización al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      renderMemoryTable();
+      updateSimulation();
+    });
+  </script>
+
+</body>
+</html>
