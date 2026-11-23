@@ -36,10 +36,10 @@ Además, todo se visualiza en tiempo real en los **4 displays de 7 segmentos**, 
 
 ---
 
-##  ¡Simulador Web Interactivo!
+##  Simulador Web Interactivo
 
 
-👉 **Abre el archivo [`simulador.html`](simulador.html)**
+ **Abrir el archivo [`simulador.html`](simulador.html)**
 
 En el simulador puedes:
 - Subir y bajar los switches de la placa DE0 y el dip switch externo.
