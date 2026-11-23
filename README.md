@@ -41,7 +41,7 @@ Además, todo se visualiza en tiempo real en los **4 displays de 7 segmentos**, 
 
  **Abrir el archivo [`simulador.html`](simulador.html)**
 
-En el simulador puedes:
+En el simulador se ve:
 - Subir y bajar los switches de la placa DE0 y el dip switch externo.
 - Ver los 4 displays de 7 segmentos iluminándose exactamente igual que en la FPGA física.
 - Probar sumas, restas, desbordamientos, escritura en RAM y control de LEDs con 1 solo clic mediante presets.
