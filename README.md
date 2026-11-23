@@ -4,7 +4,6 @@
 [![FPGA](https://img.shields.io/badge/FPGA-Cyclone%20III%20EP3C16F484C6-blue.svg)](https://www.intel.com)
 [![Hardware](https://img.shields.io/badge/Board-Terasic%20DE0-orange.svg)](https://www.terasic.com.tw)
 [![Language](https://img.shields.io/badge/Language-VHDL%20IEEE%201076--1993-green.svg)](https://en.wikipedia.org/wiki/VHDL)
-[![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE)
 
 ---
 
