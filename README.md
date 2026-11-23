@@ -1,5 +1,5 @@
-# 🚀 ALU de 8 Bits & Sistema de Memoria Unificada en FPGA
-### Proyecto Final de Sistemas Digitales — Universidad del Cauca 🏛️
+#  ALU de 8 Bits y Sistema de Memoria Unificada 
+### Proyecto Final de vhdl — Universidad del Cauca 🏛️
 
 [![FPGA](https://img.shields.io/badge/FPGA-Cyclone%20III%20EP3C16F484C6-blue.svg)](https://www.intel.com)
 [![Hardware](https://img.shields.io/badge/Board-Terasic%20DE0-orange.svg)](https://www.terasic.com.tw)
@@ -8,7 +8,7 @@
 
 ---
 
-## 👨‍💻 Información del Proyecto
+##  Información del Proyecto
 
 - **Institución:** Universidad del Cauca (Unicauca)
 - **Facultad:** Facultad de Ingeniería Electrónica y Telecomunicaciones (FIET)
@@ -18,13 +18,13 @@
 
 ---
 
-## 💡 ¿De qué se trata este proyecto?
+##  ¿De qué se trata este proyecto?
 
-¡Hola! 👋 Bienvenidos al repositorio de nuestro proyecto final.
 
-Básicamente, lo que diseñamos aquí fue el **cerebro y la memoria de una computadora de 8 bits** desde cero, usando hardware digital puro con **VHDL** e implementándolo en una tarjeta FPGA **Terasic DE0 (Altera Cyclone III)**.
 
-Si alguna vez te has preguntado cómo hace un procesador por dentro para sumar, restar, tomar decisiones lógicas o guardar información en la RAM, ¡este proyecto es exactamente eso puesto en silicio!
+Lo que diseñamos aquí fue el **cerebro y la memoria de una computadora de 8 bits** desde cero, usando hardware digital puro con **VHDL** e implementándolo en una tarjeta FPGA **Terasic DE0 (Altera Cyclone III)**.
+
+Este proyecto nace a partir de la pregunta de cómo hace un procesador por dentro para sumar, restar, tomar decisiones lógicas o guardar información en la RAM, ¡este proyecto es exactamente eso puesto en silicio!
 
 El sistema se compone de dos grandes bloques interconectados:
 1. **La ALU (Unidad Aritmético Lógica):** Es la calculadora del sistema. Realiza 8 operaciones distintas (suma, resta, incrementos, decrementos, AND, OR, NOT, etc.) y genera las famosas banderas de estado de un procesador real: **NZVC** (*Negativo*, *Cero*, *Desbordamiento/Overflow* y *Acarreo/Carry*).
@@ -37,12 +37,10 @@ Además, todo se visualiza en tiempo real en los **4 displays de 7 segmentos**, 
 
 ---
 
-## 🎮 ¡Prueba el Simulador Web Interactivo!
+##  ¡Simulador Web Interactivo!
 
-¿No tienes la FPGA a la mano o quieres entender cómo funciona antes de compilar?  
-Creamos un **simulador visual e interactivo** que corre directamente en tu navegador web.
 
-👉 **Simplemente abre el archivo [`simulador.html`](simulador.html) en Chrome, Firefox o Edge.**
+👉 **Abre el archivo [`simulador.html`](simulador.html)**
 
 En el simulador puedes:
 - Subir y bajar los switches de la placa DE0 y el dip switch externo.
@@ -51,7 +49,7 @@ En el simulador puedes:
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+##  Arquitectura del Sistema
 
 El proyecto está organizado en módulos limpios y desacoplados:
 
@@ -75,7 +73,7 @@ PfinalALU/
 └── README.md                  # Este archivo que estás leyendo
 ```
 
-### 🗺️ Mapa de Memoria (256 Bytes)
+###  Mapa de Memoria (256 Bytes)
 
 | Rango de Direcciones | Tipo de Memoria | Descripción / Función |
 | :---: | :---: | :--- |
@@ -86,7 +84,7 @@ PfinalALU/
 
 ---
 
-## 🎛️ Guía Rápida de Controles en la FPGA
+## Controles en la FPGA
 
 Para controlar el sistema usamos los **10 switches de la tarjeta DE0**, **2 botones pulsadores** y un **DIP switch externo de 12 posiciones** conectado a los puertos GPIO.
 
@@ -145,28 +143,3 @@ Durante el desarrollo nos encontramos con varios retos típicos de la vida real 
    En las pruebas iniciales, el display de las unidades mostraba símbolos raros. Al revisar el esquemático oficial de Terasic descubrimos que los pines estaban mapeados en orden inverso ($g..a$ en vez de $a..g$). Lo corregimos en el `.qsf` y los números volvieron a lucir perfectos.
 
 ---
-
-## 🛠️ Cómo Compilar y Cargar en la FPGA
-
-Si tienes Quartus II instalado en tu computador:
-
-1. Clona este repositorio:
-   ```bash
-   git clone https://github.com/[Tu-Usuario]/PfinalALU.git
-   cd PfinalALU
-   ```
-2. Abre **Quartus II 13.1** (o superior).
-3. Ve a `File` -> `Open Project...` y selecciona `PfinalALU.qpf`.
-4. Haz clic en **Start Compilation** (el botón de Play azul o `Ctrl+L`).
-5. Abre el **Programmer** (`Tools` -> `Programmer`), conecta la tarjeta DE0 por USB-Blaster y presiona **Start** para transferir el archivo `output_files/PfinalALU.sof`.
-6. ¡Listo! Empieza a jugar con los switches y botones.
-
----
-
-## 📄 Documentación Adicional
-
-- En la raíz del repositorio se encuentra el archivo **`Guia_Presentacion_ALU.pdf`**, un documento completo listo para imprimir o proyectar frente al docente con la explicación matemática, el código VHDL paso a paso y la guía de sustentación.
-
----
-
-*Hecho con dedicación, café ☕ y muchas horas frente al Quartus en los laboratorios de la Unicauca.*
