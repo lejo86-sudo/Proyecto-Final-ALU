@@ -12,8 +12,8 @@
 
 - **Institución:** Universidad del Cauca (Unicauca)
 - **Facultad:** Facultad de Ingeniería Electrónica y Telecomunicaciones (FIET)
-- **Estudiante:** `[Tu Nombre Completo Aquí]`
-- **Docente:** `[Nombre del Profesor / Docente Aquí]`
+- **Estudiante:** `Alejandro José Guevara Rada`
+- **Docente:** `Fulvio Yesid Vivas Cantero`
 - **Herramientas:** Quartus II 13.1 Web Edition, ModelSim 10.1d, Terasic DE0 Board
 
 ---
